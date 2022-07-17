@@ -3,6 +3,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Response from executing
+/// [GetWrappingKeyRequest][crate::api::transit::requests::GetWrappingKeyRequest]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetWrappingKeyResponse {
+    pub public_key: String,
+}
+
+/// Response from executing
 /// [ReadKeyRequest][crate::api::transit::requests::ReadKeyRequest]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ReadKeyResponse {

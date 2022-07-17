@@ -17,6 +17,7 @@ fn test() {
         let endpoint = TransitEndpoint::setup(&server).await.unwrap();
 
         key::test_create(&endpoint).await;
+        key::test_import_material(&endpoint).await;
         key::test_read(&endpoint).await;
         key::test_list(&endpoint).await;
         key::test_rotate(&endpoint).await;
@@ -40,6 +41,11 @@ fn test() {
 
 mod key {
     use super::TransitEndpoint;
+    use aes_kw::Kek;
+    use hmac::digest::KeyInit;
+    use rand::RngCore;
+    use rsa::{pkcs8::DecodePublicKey, PaddingScheme, PublicKey, RsaPublicKey};
+    use std::convert::TryInto;
     use vaultrs::api::transit::requests::{
         CreateKeyRequest, ExportKeyType, ExportVersion, RestoreKeyRequest,
         UpdateKeyConfigurationRequest,
@@ -85,6 +91,50 @@ mod key {
                     .derive(true)
                     .key_type(KeyType::Ed25519),
             ),
+        )
+        .await;
+        assert!(resp.is_ok());
+    }
+
+    pub async fn test_import_material(endpoint: &TransitEndpoint) {
+        /*
+        let wrapping = key::get_wrapping(&endpoint.client, &endpoint.path)
+            .await
+            .unwrap();
+        */
+
+        let ciphertext = {
+            let mut rng = rand::thread_rng();
+            let mut ephermal = [0; 32];
+            rng.fill_bytes(&mut ephermal);
+
+            /*
+            let padding = PaddingScheme::new_oaep::<sha2::Sha256>();
+            let public_key = RsaPublicKey::from_public_key_pem(&wrapping.public_key).unwrap();
+            let wrapped_ephermal = public_key.encrypt(&mut rng, padding, &ephermal).unwrap();
+            assert_eq!(wrapped_ephermal.len(), 32);
+            let wrapped_aes: [u8; 32] = wrapped_ephermal[..].try_into().unwrap();
+            */
+            let mut target = [0; 32];
+            rng.fill_bytes(&mut target);
+
+            let kek = Kek::<aes::Aes256>::from(ephermal);
+            let wrapped_key = kek.wrap_vec(&target).unwrap();
+            assert_eq!(wrapped_key.len(), 40);
+
+            let unwrapped_key = kek.unwrap_vec(&wrapped_key).unwrap();
+            assert_eq!(unwrapped_key, target);
+
+            base64::encode([&ephermal[..], &wrapped_key].concat())
+        };
+
+        let resp = key::import(
+            &endpoint.client,
+            &endpoint.path,
+            &endpoint.keys.import,
+            KeyType::Aes256Gcm96,
+            &ciphertext,
+            None,
         )
         .await;
         assert!(resp.is_ok());
@@ -414,6 +464,7 @@ mod cache {
 
 pub struct TestKeys {
     pub basic: String,
+    pub import: String,
     pub export: String,
     pub delete: String,
     pub signing: String,
@@ -454,6 +505,7 @@ impl TransitEndpoint {
             path: "transit-test".into(),
             keys: TestKeys {
                 basic: "basic-key".into(),
+                import: "import-key".into(),
                 export: "export-key".into(),
                 delete: "delete-key".into(),
                 signing: "signing-key".into(),

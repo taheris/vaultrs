@@ -67,6 +67,22 @@ pub enum HashAlgorithm {
     Sha3_512,
 }
 
+#[derive(Clone, Copy, Debug, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum HashFunction {
+    Sha1,
+    Sha224,
+    Sha256,
+    Sha384,
+    Sha512,
+}
+
+impl Default for HashFunction {
+    fn default() -> Self {
+        Self::Sha256
+    }
+}
+
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum SignatureAlgorithm {

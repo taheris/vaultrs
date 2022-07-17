@@ -2,11 +2,17 @@ pub mod key {
     use crate::api::transit::{
         requests::{
             BackupKeyRequest, CreateKeyRequest, CreateKeyRequestBuilder, DeleteKeyRequest,
-            ExportKeyRequest, ExportKeyType, ExportVersion, ListKeysRequest, ReadKeyRequest,
-            RestoreKeyRequest, RestoreKeyRequestBuilder, RotateKeyRequest, TrimKeyRequest,
+            ExportKeyRequest, ExportKeyType, ExportVersion, GetWrappingKeyRequest,
+            ImportKeyRequest, ImportKeyRequestBuilder, ImportKeyVersionRequest,
+            ImportKeyVersionRequestBuilder, ListKeysRequest, ReadKeyRequest, RestoreKeyRequest,
+            RestoreKeyRequestBuilder, RotateKeyRequest, TrimKeyRequest,
             UpdateKeyConfigurationRequest, UpdateKeyConfigurationRequestBuilder,
         },
-        responses::{BackupKeyResponse, ExportKeyResponse, ListKeysResponse, ReadKeyResponse},
+        responses::{
+            BackupKeyResponse, ExportKeyResponse, GetWrappingKeyResponse, ListKeysResponse,
+            ReadKeyResponse,
+        },
+        KeyType,
     };
     use crate::{api, client::Client, error::ClientError};
 
@@ -28,6 +34,67 @@ pub mod key {
             .build()
             .unwrap();
         api::exec_with_empty(client, endpoint).await
+    }
+
+    /// Imports existing key material into a new transit-managed encryption key.
+    ///
+    /// See [ImportKeyRequest]
+    #[instrument(skip(client, opts), err)]
+    pub async fn import(
+        client: &impl Client,
+        mount: &str,
+        name: &str,
+        key_type: KeyType,
+        ciphertext: &str,
+        opts: Option<&mut ImportKeyRequestBuilder>,
+    ) -> Result<(), ClientError> {
+        let mut builder = ImportKeyRequest::builder();
+        let endpoint = opts
+            .unwrap_or(&mut builder)
+            .mount(mount)
+            .name(name)
+            .key_type(key_type)
+            .ciphertext(ciphertext)
+            .build()
+            .unwrap();
+        api::exec_with_empty(client, endpoint).await
+    }
+
+    /// Imports new key material into an existing imported key.
+    ///
+    /// See [ImportKeyVersionRequest]
+    #[instrument(skip(client, opts), err)]
+    pub async fn import_version(
+        client: &impl Client,
+        mount: &str,
+        name: &str,
+        ciphertext: &str,
+        opts: Option<&mut ImportKeyVersionRequestBuilder>,
+    ) -> Result<(), ClientError> {
+        let mut builder = ImportKeyVersionRequest::builder();
+        let endpoint = opts
+            .unwrap_or(&mut builder)
+            .mount(mount)
+            .name(name)
+            .ciphertext(ciphertext)
+            .build()
+            .unwrap();
+        api::exec_with_empty(client, endpoint).await
+    }
+
+    /// Get the wrapping key to use for importing keys.
+    ///
+    /// See [GetWrappingKeyRequest]
+    #[instrument(skip(client), err)]
+    pub async fn get_wrapping(
+        client: &impl Client,
+        mount: &str,
+    ) -> Result<GetWrappingKeyResponse, ClientError> {
+        let endpoint = GetWrappingKeyRequest::builder()
+            .mount(mount)
+            .build()
+            .unwrap();
+        api::exec_with_result(client, endpoint).await
     }
 
     /// Read encryption key information.
