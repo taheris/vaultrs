@@ -175,7 +175,7 @@ pub struct LookupTokenAccessorRequest {
 /// * Response: N/A
 /// * Reference: https://www.vaultproject.io/api-docs/auth/token#renew-a-token
 #[derive(Builder, Debug, Default, Endpoint)]
-#[endpoint(path = "/auth/token/renew", method = "POST", builder = "true")]
+#[endpoint(path = "/auth/token/renew", method = "PUT", builder = "true")]
 #[builder(setter(into, strip_option), default)]
 pub struct RenewTokenRequest {
     pub token: String,
@@ -190,7 +190,7 @@ pub struct RenewTokenRequest {
 /// * Response: N/A
 /// * Reference: https://www.vaultproject.io/api-docs/auth/token#renew-a-token-self
 #[derive(Builder, Debug, Default, Endpoint)]
-#[endpoint(path = "	/auth/token/renew-self", method = "POST", builder = "true")]
+#[endpoint(path = "/auth/token/renew-self", method = "PUT", builder = "true")]
 #[builder(setter(into, strip_option), default)]
 pub struct RenewTokenSelfRequest {
     pub increment: Option<String>,
@@ -204,7 +204,7 @@ pub struct RenewTokenSelfRequest {
 /// * Response: N/A
 /// * Reference: https://www.vaultproject.io/api-docs/auth/token#renew-a-token-self
 #[derive(Builder, Debug, Default, Endpoint)]
-#[endpoint(path = "	/auth/token/renew-accessor", method = "POST", builder = "true")]
+#[endpoint(path = "/auth/token/renew-accessor", method = "POST", builder = "true")]
 #[builder(setter(into, strip_option), default)]
 pub struct RenewTokenAccessorRequest {
     pub accessor: String,
@@ -233,7 +233,7 @@ pub struct RevokeTokenRequest {
 /// * Response: N/A
 /// * Reference: https://www.vaultproject.io/api-docs/auth/token#revoke-a-token-self
 #[derive(Builder, Debug, Default, Endpoint)]
-#[endpoint(path = "	/auth/token/revoke-self", method = "POST", builder = "true")]
+#[endpoint(path = "/auth/token/revoke-self", method = "POST", builder = "true")]
 #[builder(setter(into, strip_option), default)]
 pub struct RevokeTokenSelfRequest {}
 
